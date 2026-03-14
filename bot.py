@@ -8,6 +8,7 @@ sys.stderr.flush()
 try:
     from pyrogram import Client, filters
     from pyrogram.types import Message
+    from pyrogram.errors import RPCError, Unauthorized, FloodWait
     print("✅ Pyrogram imported", file=sys.stderr)
 except ImportError as e:
     print(f"❌ Import error: {e}", file=sys.stderr)
@@ -18,7 +19,7 @@ API_ID = 36279507
 API_HASH = "56fcccec931c77d873a70467de073e7a"
 SESSION_STRING = "AgIplNMAR9MockxirApSfeRG6bOVLeiUAlvjiJZGaNLyJ4nbvj0RCknIjnl5FPzWecdNrRv8S6xH9ngUce1nefwNHLueR1LkbWQAicX6W1WhbI137oxCx3YUpUd4_2MLrH2cd3flz1bhqRWWgGWXDcE-srVRX10RXfnwQpV-lgrx7hO-hy9hNg62lPsAeKaYaCoNYzd3fXSUD06CT0VKFfvVmajliCbJ_bgo6kpe64QDw0Ql8J41Aq9uQjfVw5K1-GQmqPCEgOmGRnFZ9fblMxzYdDy1cRtQbhB0U-8J6qVTsi1m4BEnsuNhhvuZKfP3-dK7LOt9xxguhpxC1k9TUoifQiBB8AAAAAArln85AA"  # ЗАМЕНИТЕ НА ВАШУ ПОЛНУЮ СТРОКУ!
 
-# Токен бота (будет взят из переменной окружения BOT_TOKEN)
+# Токен бота
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
     print("❌ BOT_TOKEN not set in environment variables!", file=sys.stderr)
@@ -75,10 +76,22 @@ async def main():
     print("Starting user client...", file=sys.stderr)
     await user_client.start()
     print("✅ User client started", file=sys.stderr)
+
     print("Starting bot client...", file=sys.stderr)
     await bot_client.start()
     print("✅ Bot client started", file=sys.stderr)
+
+    # Проверяем, что бот может связаться с Telegram
+    try:
+        me = await bot_client.get_me()
+        print(f"✅ Bot connected as @{me.username}", file=sys.stderr)
+    except Exception as e:
+        print(f"❌ Bot failed to connect to Telegram: {e}", file=sys.stderr)
+        # Если ошибка, завершаем работу
+        return
+
     print("Бот запущен и готов к работе!", file=sys.stderr)
+    # Бесконечно ждём, пока клиенты работают
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
